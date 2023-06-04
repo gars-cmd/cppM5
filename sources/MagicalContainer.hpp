@@ -26,10 +26,12 @@ public:
     }
     ~MagicalContainer();
     MagicalContainer () noexcept;
+    std::vector<int> getVec();
     void addElement(int new_val);
     void removeElementHelper(bool isPrime, int element);
     void removeElement( int element);
     size_t size() const;
+    class BaseIterator;
     class AscendingIterator;
     class SideCrossIterator;
     class PrimeIterator;
@@ -45,11 +47,26 @@ public:
 
 };
 
+class MagicalContainer::BaseIterator {
+private:
+    const MagicalContainer* magic_container;
+    size_t index = 0;
+    BaseIterator(const MagicalContainer& container, size_t index)
+        : magic_container(&container), index(index) {}
+
+public:
+    BaseIterator& operator=(const BaseIterator& other);
+    bool operator==(const BaseIterator& other) const;
+    bool operator!=(const BaseIterator& other) const;
+    void throwOnDiffContainer(const BaseIterator& other) const;
+};
+
+
 
 class MagicalContainer::AscendingIterator {
 private:
     const MagicalContainer* magic_container;
-    size_t index;
+    size_t index = 0;
     AscendingIterator(const MagicalContainer& container, size_t index)
     :magic_container(&container), index(index){}
     void throwOnOverIncrementation() const;
@@ -78,8 +95,8 @@ public:
 class MagicalContainer::SideCrossIterator {
 private:
     const MagicalContainer* magic_container;
-    size_t index;
-    size_t offset;
+    size_t index = 0;
+    size_t offset = 0;
     SideCrossIterator(const MagicalContainer& container, size_t index, size_t offset)
     :magic_container(&container), index(index), offset(offset){}
     void throwOnOverIncrementation() const;
@@ -93,6 +110,10 @@ public:
     bool operator!=(const SideCrossIterator& other) const;
     bool operator>(const SideCrossIterator& other) const;
     bool operator<(const SideCrossIterator& other) const;
+    int getIndex();
+    int getOffSet();
+    void incIndex();
+    void IncOffset();
     SideCrossIterator begin() const;
     SideCrossIterator end() const;
     int operator*() ;
@@ -108,7 +129,7 @@ public:
 class MagicalContainer::PrimeIterator {
 private:
     const MagicalContainer* magic_container;
-    size_t index;
+    size_t index = 0;
     PrimeIterator(const MagicalContainer& container, size_t index)
     :magic_container(&container), index(index){}
     void throwOnOverIncrementation() const;

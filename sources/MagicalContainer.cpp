@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <iostream>
 #include <iterator>
+#include <math.h>
 #include <stdexcept>
 #include <vector>
     
@@ -14,26 +15,35 @@ ariel::MagicalContainer::~MagicalContainer(){
         delete pointer;
     }
 }
-    void ariel::MagicalContainer::sortedAdd(bool isPrime, int element){
-    if (isPrime) {
+
+std::vector<int> ariel::MagicalContainer::getVec(){
+    return MagicalContainer::container;
+}
+
+void ariel::MagicalContainer::sortedAdd(bool isPrime, int element){
+    if (isPrime) { // O(sqrt(n))
         int* temp = new int(element);
-        this->prime_container.insert(std::upper_bound(
+        this->prime_container.insert(std::upper_bound( // O(log(n)))
             this->prime_container.begin(),
             this->prime_container.end(),
             temp,
             compare), new int(element));
         delete temp;
     }
-    this->container.insert(std::upper_bound(
+    this->container.insert(std::upper_bound( // O(log(n)))
         this->container.begin(),
         this->container.end(),
         element), element);
 }
 
+//O(log(n))
 bool ariel::MagicalContainer::isAlreadyIn(int element){
-    return std::find(this->container.begin(), this->container.end(), element) != this->container.end();
+    return std::find(this->container.begin(),
+                     this->container.end(),
+                     element) != this->container.end();
 }
 
+//O(sqrt(n))
 bool ariel::MagicalContainer::isPrime(int number) const{
     // Corner cases
     if (number <= 1){ return false;}
@@ -58,8 +68,8 @@ void ariel::MagicalContainer::addElement(int new_val){
 
 
 void ariel::MagicalContainer::removeElementHelper(bool isPrime, int element) {
-    if (isPrime) {
-        for (auto it = this->prime_container.begin(); it != this->prime_container.end(); ++it) {
+    if (isPrime) { //O(sqrt(n))
+        for (auto it = this->prime_container.begin(); it != this->prime_container.end(); ++it) { //O(n)
             if (**it == element) {
                 delete *it;
                 this->prime_container.erase(it);
@@ -67,7 +77,7 @@ void ariel::MagicalContainer::removeElementHelper(bool isPrime, int element) {
             }
         }
     }
-    auto iterator = std::find(this->container.begin(), container.end(), element);
+    auto iterator = std::find(this->container.begin(), container.end(), element); //O(log(n))
     if (iterator != container.end()) {
         container.erase(iterator);
     }else {
@@ -75,6 +85,7 @@ void ariel::MagicalContainer::removeElementHelper(bool isPrime, int element) {
     }
 }
 
+//O(n)
 void ariel::MagicalContainer::removeElement(int element){
     this->removeElementHelper(this->isPrime(element), element);
 }
@@ -82,6 +93,8 @@ void ariel::MagicalContainer::removeElement(int element){
 size_t ariel::MagicalContainer::size() const{
         return container.size();
 }
+
+
 
 ariel::MagicalContainer::AscendingIterator::AscendingIterator(const MagicalContainer& container)
     : magic_container(&container), index(0){}
@@ -135,7 +148,7 @@ int ariel::MagicalContainer::AscendingIterator::operator*() const{
 
 void ariel::MagicalContainer::AscendingIterator::throwOnOverIncrementation() const{
     if (this->index >= this->magic_container->size() ) {
-        throw std::runtime_error("we already reach the end of the SideCrossIterator");
+        throw std::runtime_error("we already reach the end of the AscendingIterator");
     }
 }
 
@@ -153,6 +166,10 @@ ariel::MagicalContainer::SideCrossIterator::SideCrossIterator(const SideCrossIte
 
 ariel::MagicalContainer::SideCrossIterator::~SideCrossIterator(){}
 
+int ariel::MagicalContainer::SideCrossIterator::getIndex(){
+    return this->index;
+}
+
 ariel::MagicalContainer::SideCrossIterator& ariel::MagicalContainer::SideCrossIterator::operator=(const SideCrossIterator& other){
     if (this->magic_container->container != other.magic_container->container) {
         throw std::runtime_error("both of the container are not the same");
@@ -161,6 +178,18 @@ ariel::MagicalContainer::SideCrossIterator& ariel::MagicalContainer::SideCrossIt
     this->index = other.index;
     this->offset = other.offset;
     return *this;
+}
+
+int ariel::MagicalContainer::SideCrossIterator::getOffSet(){
+    return this->offset;
+}
+
+void ariel::MagicalContainer::SideCrossIterator::incIndex(){
+    this->index +=1;
+}
+
+void ariel::MagicalContainer::SideCrossIterator::IncOffset(){
+    this->offset +=1;
 }
 
 bool ariel::MagicalContainer::SideCrossIterator::operator==(const SideCrossIterator& other) const{
@@ -186,14 +215,22 @@ ariel::MagicalContainer::SideCrossIterator ariel::MagicalContainer::SideCrossIte
 }
 
 ariel::MagicalContainer::SideCrossIterator ariel::MagicalContainer::SideCrossIterator::end() const{
-    return SideCrossIterator(*magic_container, magic_container->size(), false);
+    int size = this->magic_container->container.size();
+    if (size %2 == 0) {
+       return SideCrossIterator(*magic_container,
+                                magic_container->size(),
+                                static_cast<size_t>(size/2)); 
+    }else {
+        return SideCrossIterator(*magic_container,
+                             magic_container->size(),
+                             static_cast<size_t>(ceil(size/static_cast<double>(2))));
+    }
 }
 
 int ariel::MagicalContainer::SideCrossIterator::operator*() {
     if (this->index % 2 == 0) {
         return this->magic_container->container[this->index - this->offset];
     }else {
-        this->offset++;
         return this->magic_container->container[this->magic_container->size() - this->offset];
     }
 }
@@ -204,10 +241,12 @@ void ariel::MagicalContainer::SideCrossIterator::throwOnOverIncrementation() con
     }
 }
 
-
 ariel::MagicalContainer::SideCrossIterator& ariel::MagicalContainer::SideCrossIterator::operator++(){
     this->throwOnOverIncrementation();
-    this->index++;
+    if (this->index % 2 == 0) {
+        this->IncOffset();
+    }
+    this->incIndex();
     return *this;
 }
 
