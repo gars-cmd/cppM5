@@ -16,6 +16,8 @@ private:
     std::vector<int*> prime_container;
     void sortedAdd(bool isPrime, int element);
     bool isAlreadyIn(int element);
+    size_t curr_size = 0;
+    size_t curr_prime_size = 0;
 
 public:
     static bool compare(const int* var_a,const int* var_b){
@@ -31,6 +33,7 @@ public:
     void removeElementHelper(bool isPrime, int element);
     void removeElement( int element);
     size_t size() const;
+    size_t prime_size() const;
     class BaseIterator;
     class AscendingIterator;
     class SideCrossIterator;
@@ -46,22 +49,6 @@ public:
     }
 
 };
-
-class MagicalContainer::BaseIterator {
-private:
-    const MagicalContainer* magic_container;
-    size_t index = 0;
-    BaseIterator(const MagicalContainer& container, size_t index)
-        : magic_container(&container), index(index) {}
-
-public:
-    BaseIterator& operator=(const BaseIterator& other);
-    bool operator==(const BaseIterator& other) const;
-    bool operator!=(const BaseIterator& other) const;
-    void throwOnDiffContainer(const BaseIterator& other) const;
-};
-
-
 
 class MagicalContainer::AscendingIterator {
 private:

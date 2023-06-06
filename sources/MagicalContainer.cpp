@@ -29,11 +29,13 @@ void ariel::MagicalContainer::sortedAdd(bool isPrime, int element){
             temp,
             compare), new int(element));
         delete temp;
+        this->curr_prime_size +=1;
     }
     this->container.insert(std::upper_bound( // O(log(n)))
         this->container.begin(),
         this->container.end(),
         element), element);
+    this->curr_size+=1;
 }
 
 //O(log(n))
@@ -72,6 +74,7 @@ void ariel::MagicalContainer::removeElementHelper(bool isPrime, int element) {
         for (auto it = this->prime_container.begin(); it != this->prime_container.end(); ++it) { //O(n)
             if (**it == element) {
                 delete *it;
+                this->curr_prime_size -=1;
                 this->prime_container.erase(it);
                 break;
             }
@@ -80,6 +83,7 @@ void ariel::MagicalContainer::removeElementHelper(bool isPrime, int element) {
     auto iterator = std::find(this->container.begin(), container.end(), element); //O(log(n))
     if (iterator != container.end()) {
         container.erase(iterator);
+        this->curr_size-=1;
     }else {
         throw std::runtime_error("the element doesn't exist");
     }
@@ -91,7 +95,11 @@ void ariel::MagicalContainer::removeElement(int element){
 }
 
 size_t ariel::MagicalContainer::size() const{
-        return container.size();
+        return this->curr_size;
+}
+
+size_t ariel::MagicalContainer::prime_size() const{
+    return this->curr_prime_size; 
 }
 
 
@@ -121,8 +129,6 @@ bool ariel::MagicalContainer::AscendingIterator::operator==(const AscendingItera
 bool ariel::MagicalContainer::AscendingIterator::operator!=(const AscendingIterator& other) const{
     return !(*this == other );
 }
-
-
 
 bool ariel::MagicalContainer::AscendingIterator::operator>(const AscendingIterator& other) const{
     this->throwOnDiffContainer(other);
@@ -215,14 +221,14 @@ ariel::MagicalContainer::SideCrossIterator ariel::MagicalContainer::SideCrossIte
 }
 
 ariel::MagicalContainer::SideCrossIterator ariel::MagicalContainer::SideCrossIterator::end() const{
-    int size = this->magic_container->container.size();
+    int size = this->magic_container->size();
     if (size %2 == 0) {
        return SideCrossIterator(*magic_container,
-                                magic_container->size(),
+                                this->magic_container->size(),
                                 static_cast<size_t>(size/2)); 
     }else {
         return SideCrossIterator(*magic_container,
-                             magic_container->size(),
+                             this->magic_container->size(),
                              static_cast<size_t>(ceil(size/static_cast<double>(2))));
     }
 }
@@ -290,7 +296,7 @@ ariel::MagicalContainer::PrimeIterator ariel::MagicalContainer::PrimeIterator::b
 }
 
 ariel::MagicalContainer::PrimeIterator ariel::MagicalContainer::PrimeIterator::end() const{
-    return PrimeIterator(*magic_container, magic_container->prime_container.size());
+    return PrimeIterator(*magic_container, magic_container->prime_size());
 }
 
 int ariel::MagicalContainer::PrimeIterator::operator*() const{
@@ -299,13 +305,13 @@ int ariel::MagicalContainer::PrimeIterator::operator*() const{
 
 
 void ariel::MagicalContainer::PrimeIterator::throwOnOverIncrementation() const{
-    if (this->index >= this->magic_container->prime_container.size() ) {
+    if (this->index >= this->magic_container->prime_size() ) {
         throw std::runtime_error("we already reach the end of the SideCrossIterator");
     }
 }
 
 ariel::MagicalContainer::PrimeIterator& ariel::MagicalContainer::PrimeIterator::operator++(){
-    if (this->index >= this->magic_container->prime_container.size()) {
+    if (this->index >= this->magic_container->prime_size()) {
         throw std::runtime_error("the index is beyond the size of the prime container");
     }    
     ++this->index;
