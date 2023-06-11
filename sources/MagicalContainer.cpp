@@ -6,7 +6,6 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-    
 
 ariel::MagicalContainer::MagicalContainer() noexcept {}
 
